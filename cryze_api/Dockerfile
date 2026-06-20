@@ -16,7 +16,17 @@ RUN dotnet publish -c Release -o out
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 
 # Install Python 3.11
-RUN apt-get update -y && apt-get install -y python3.11 python3-pip
+RUN apt-get update -y && apt-get install -y python3.11 python3-pip ca-certificates
+
+# Wyze's api.wyzecam.com still chains to the legacy "DigiCert Global Root CA",
+# which was dropped from 2026+ ca-certificates bundles (only G2/G3/G4/G5 remain).
+# Without it, wyze_sdk dies on startup with SSL CERTIFICATE_VERIFY_FAILED
+# ("unable to get local issuer certificate"). Re-add the root and point
+# Python's requests/ssl at the system bundle.
+COPY certs/DigiCertGlobalRootCA.pem /usr/local/share/ca-certificates/DigiCertGlobalRootCA.crt
+RUN update-ca-certificates
+ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 # make a directory for the database file
 RUN mkdir /data
 # Set the working directory
