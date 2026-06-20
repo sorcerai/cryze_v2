@@ -4,6 +4,13 @@ Hello!
 
 This is a RTSP server for WYZE cameras of the GWELL variety.
 
+## fork note — reviving the build (2026)
+Upstream is archived. This fork contains the minimal fixes needed to make `docker compose build && up` work again on a current host:
+- **Dead base image:** `cryze_android_app/Dockerfile` used `openjdk:18-jdk-slim`, which was removed from Docker Hub. Switched to `eclipse-temurin:17-jdk-jammy`.
+- **SSL trust:** `api.wyzecam.com` still chains to the legacy **`DigiCert Global Root CA`**, which 2026+ `ca-certificates` bundles dropped (they keep only G2/G3/G4/G5). Without it, `cryze_api` crash-loops on `SSL: CERTIFICATE_VERIFY_FAILED`. `cryze_api/Dockerfile` now re-adds that root and points `requests`/`ssl` at the system bundle (`REQUESTS_CA_BUNDLE`/`SSL_CERT_FILE`).
+- **Headless hosts:** for a VM/box with no GPU, set `androidboot.redroid_gpu_mode=guest` (software rendering) in `docker-compose.yml` and drop the `redroid_gpu_node` line.
+- **Confirmed working: `GW_GC2` (Wyze Cam OG 3X)** — already in the default `ValidMarsDevicePrefix`, streams H264 1080p@20fps.
+
 ## preface
 THANK YOU to Carson Loyal (carTloyal123) for the libraries to connect and get streams and pedroSG94 for RTSP related android libraries. I used the following repos:
 - [cryze-android](https://github.com/carTloyal123/cryze-android) - the library for connecting to the cameras

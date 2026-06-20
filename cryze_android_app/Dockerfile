@@ -1,4 +1,4 @@
-FROM openjdk:18-jdk-slim AS app-builder
+FROM eclipse-temurin:17-jdk-jammy AS app-builder
 
 ENV DEBIAN_FRONTEND noninteractive
 
